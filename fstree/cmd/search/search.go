@@ -18,7 +18,7 @@ var (
 
 func init() {
 	log.SetFlags(log.Ldate | log.Ltime)
-	log.SetPrefix(filepath.Base(os.Args[0]))
+	log.SetPrefix(filepath.Base(os.Args[0]) + ": ")
 }
 
 func main() {

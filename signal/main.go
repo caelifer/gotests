@@ -4,11 +4,13 @@ import (
 	"fmt"
 	"os"
 	"time"
+	"sync/atomic"
 
 	"github.com/caelifer/gotests/signal/dispatch"
 )
 
-var sigCounter = 0
+// Signal event counter - global shared value
+var sigCounter int32 = 0
 
 func main() {
 	// Install hadler
@@ -20,7 +22,7 @@ func main() {
 	for _ = range periodic {
 		fmt.Print(".")
 		if time.Since(start) > 5*time.Second {
-			// No longer handle SIGINT
+			// Stop handling INT signal
 			dispatch.StopSignalHandler(os.Interrupt)
 
 			// Give time to user to press CTRL-C
@@ -32,11 +34,15 @@ func main() {
 	}
 }
 
+// SIGINT custom handler one
 func handleSIGINT_ONE(signal os.Signal) {
-	sigCounter++
+	// Atomically adjust counter
+	atomic.AddInt32(&sigCounter, 1)
+
 	fmt.Printf("\nHandler ONE: Got signal [%v]\n", signal)
 
-	if sigCounter > 3 {
+	// Atomically compare
+	if atomic.LoadInt32(&sigCounter) > 3 {
 		os.Exit(1)
 	}
 
@@ -44,11 +50,15 @@ func handleSIGINT_ONE(signal os.Signal) {
 	dispatch.HandleSignal(os.Interrupt, handleSIGINT_TWO)
 }
 
+// SIGINT custom handler two
 func handleSIGINT_TWO(signal os.Signal) {
-	sigCounter++
+	// Atomically adjust counter
+	atomic.AddInt32(&sigCounter, 1)
+
 	fmt.Printf("\nHandler TWO: Got signal [%v]\n", signal)
 
-	if sigCounter > 3 {
+	// Atomically compare
+	if atomic.LoadInt32(&sigCounter) > 3 {
 		os.Exit(1)
 	}
 

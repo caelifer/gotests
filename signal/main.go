@@ -3,24 +3,16 @@ package main
 import (
 	"fmt"
 	"os"
-	"os/signal"
 	"time"
+
+	"github.com/caelifer/gotests/signal/dispatch"
 )
 
 var sigCounter = 0
 
-// SignalHandler is a custom function that handles os.Signal
-type SignalHandler func(os.Signal)
-
 func main() {
 	// Install hadler
-	HandleSignal(os.Interrupt, func(signal os.Signal) {
-		sigCounter++
-		fmt.Printf("\nGot signal [%v]\n", signal)
-		if sigCounter > 1 {
-			os.Exit(1)
-		}
-	})
+	dispatch.HandleSignal(os.Interrupt, handleSIGINT_ONE)
 
 	periodic := time.Tick(1 * time.Second)
 	for _ = range periodic {
@@ -28,16 +20,18 @@ func main() {
 	}
 }
 
-// HandleSignal installs custom SignalHandler handler for a particular os.Signal
-// provided by sig argument.
-func HandleSignal(sig os.Signal, handler SignalHandler) {
-	// Create buffered channel of os.Signal values
-	ch := make(chan os.Signal, 1)
-	signal.Notify(ch, sig)
+func handleSIGINT_ONE(signal os.Signal) {
+	sigCounter++
+	fmt.Printf("\nHandler ONE: Got signal [%v]\n", signal)
 
-	go func() {
-		for s := range ch {
-			handler(s)
-		}
-	}()
+	// Install different signal in mid-flight
+	dispatch.HandleSignal(os.Interrupt, handleSIGINT_TWO)
+}
+
+func handleSIGINT_TWO(signal os.Signal) {
+	sigCounter++
+	fmt.Printf("\nHandler TWO: Got signal [%v]\n", signal)
+	if sigCounter > 1 {
+		os.Exit(1)
+	}
 }

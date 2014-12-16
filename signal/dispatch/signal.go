@@ -49,11 +49,12 @@ func HandleSignal(signal os.Signal, handler SignalHandler) {
 	syssignal.Notify(ch, signal)
 
 	// Install custom handler in the separate gorutine
-	go func(c <-chan os.Signal) {
+	go func(c <-chan os.Signal, sig os.Signal) {
 		for s := range c {
 			handler(s)
 		}
-	}(ch)
+		log.Printf("exiting [%s] handler", sig)
+	}(ch, signal)
 }
 
 // StopSignalHandler safely stops signal handling for signal specified by signal.

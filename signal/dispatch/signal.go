@@ -7,6 +7,11 @@ import (
 	"sync"
 )
 
+func init() {
+	// Set logger
+	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
+}
+
 // dispatcher
 var dispatcher = struct {
 	*sync.Mutex

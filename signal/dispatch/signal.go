@@ -9,7 +9,7 @@ import (
 
 // dispatcher
 var dispatcher = struct {
-	*sync.Mutext
+	*sync.Mutex
 	signals map[os.Signal]chan os.Signal
 }{
 	new(sync.Mutex),
@@ -22,6 +22,8 @@ type SignalHandler func(os.Signal)
 // HandleSignal installs custom SignalHandler handler for a particular os.Signal
 // provided by sig argument.
 func HandleSignal(sig os.Signal, handler SignalHandler) {
+	var ch chan os.Signal
+
 	// Take exclusive lock
 	dispatcher.Lock()
 

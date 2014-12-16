@@ -67,7 +67,7 @@ func StopSignalHandler(signal os.Signal) {
 	// Check if we already have registered handler
 	if ch, ok := dispatcher.signals[signal]; ok {
 		// Signal handler already exists - do clean-up
-		log.Printf("clean-up existing [%s] handler", signal)
+		log.Printf("unregistering existing [%s] handler", signal)
 
 		// Stop receiving signlas
 		syssignal.Stop(ch)

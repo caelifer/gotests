@@ -16,7 +16,7 @@ func main() {
 	// Install hadler
 	dispatch.HandleSignal(os.Interrupt, handleSIGINT_ONE)
 
-	periodic := time.Tick(1 * time.Second)
+	periodic := time.Tick(500 * time.Millisecond)
 	start := time.Now()
 
 	for _ = range periodic {

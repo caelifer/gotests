@@ -20,12 +20,16 @@ func main() {
 	for _ = range periodic {
 		fmt.Print(".")
 		if time.Since(start) > 5*time.Second {
+			// No longer handle SIGINT
 			dispatch.StopSignalHandler(os.Interrupt)
+
+			// Give time to user to press CTRL-C
 			time.Sleep(3 * time.Second)
-			break // for loop
+
+			// Exit program
+			return
 		}
 	}
-	os.Exit(0)
 }
 
 func handleSIGINT_ONE(signal os.Signal) {

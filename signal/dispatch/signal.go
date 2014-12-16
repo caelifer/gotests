@@ -3,7 +3,7 @@ package dispatch
 import (
 	"log"
 	"os"
-	"os/signal"
+	syssignal "os/signal"
 	"sync"
 )
 
@@ -27,7 +27,7 @@ type SignalHandler func(os.Signal)
 // HandleSignal installs custom handler for a particular os.Signal provided by signal.
 func HandleSignal(signal os.Signal, handler SignalHandler) {
 	// Uneregister handler if it exists
-	StopSignalHandle(signal)
+	StopSignalHandler(signal)
 
 	log.Printf("registering new [%s] handler", signal)
 
@@ -46,7 +46,7 @@ func HandleSignal(signal os.Signal, handler SignalHandler) {
 	/////////////////////// protected section ///////////////////
 
 	// Set notification
-	signal.Notify(ch, signal)
+	syssignal.Notify(ch, signal)
 
 	// Install custom handler in the separate gorutine
 	go func(c <-chan os.Signal) {
@@ -56,9 +56,9 @@ func HandleSignal(signal os.Signal, handler SignalHandler) {
 	}(ch)
 }
 
-// StopSignalHandle safely stops signal handling for signal specified by signal.
+// StopSignalHandler safely stops signal handling for signal specified by signal.
 // If no hanlder exists, this function is noop.
-func StopSignalHandle(signal os.Signal) {
+func StopSignalHandler(signal os.Signal) {
 	// Take exclusive lock
 	dispatcher.Lock()
 	defer dispatcher.Unlock()
@@ -69,7 +69,7 @@ func StopSignalHandle(signal os.Signal) {
 		log.Printf("clean-up existing [%s] handler", signal)
 
 		// Stop receiving signlas
-		signal.Stop(ch)
+		syssignal.Stop(ch)
 		// Close signal channel so gorutine can safely exit
 		close(ch)
 

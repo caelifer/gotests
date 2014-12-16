@@ -24,10 +24,8 @@ func main() {
 		if time.Since(start) > 5*time.Second {
 			// Stop handling INT signal
 			dispatch.StopSignalHandler(os.Interrupt)
-
 			// Give time to user to press CTRL-C
 			time.Sleep(3 * time.Second)
-
 			// Exit program
 			return
 		}

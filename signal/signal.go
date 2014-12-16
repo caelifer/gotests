@@ -31,7 +31,7 @@ func main() {
 // HandleSignal installs custom SignalHandler handler for a particular os.Signal
 // provided by sig argument.
 func HandleSignal(sig os.Signal, handler SignalHandler) {
-	// Create SIGINT buffered channel
+	// Create buffered channel of os.Signal values
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, sig)
 

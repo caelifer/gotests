@@ -1,7 +1,10 @@
 package main
 
-import "fmt"
-import sbuf "github.com/caelifer/gotests/reader/stringbuffer"
+import (
+	"fmt"
+
+	sbuf "github.com/caelifer/gotests/reader/stringbuffer"
+)
 
 func main() {
 	const (

@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"test/wc/lex"
+
+	"github.com/caelifer/gotests/wc/lex"
 )
 
 func main() {
@@ -34,7 +35,7 @@ LOOP:
 		}
 	}
 
-	fmt.Printf("\t%d\t%d\t%d\t%d\n", lines, words, chars, runes)
+	fmt.Printf("%8d %7d %7d %7d\n", lines, words, chars, runes)
 	// panic("Testing stack")
 	// fmt.Println(str)
 }

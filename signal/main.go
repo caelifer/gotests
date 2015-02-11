@@ -25,7 +25,7 @@ func main() {
 			// Stop handling INT signal
 			dispatch.StopSignalHandler(os.Interrupt)
 			// Give time to user to press CTRL-C
-			time.Sleep(3 * time.Second)
+			// time.Sleep(3 * time.Second)
 			// Exit program
 			return
 		}

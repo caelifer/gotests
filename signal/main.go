@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 	"os"
-	"time"
 	"sync/atomic"
+	"time"
 
 	"github.com/caelifer/gotests/signal/dispatch"
 )

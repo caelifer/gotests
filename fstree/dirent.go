@@ -3,6 +3,7 @@ package fstree
 /*
 #include <dirent.h>
 #include <stdlib.h>
+#include <string.h>
 
 struct dirent *do_readDir(DIR *dir, struct dirent *ent) {
 	struct dirent *test = ent;
@@ -109,7 +110,7 @@ func (n dirent) IsDir() bool {
 func makeGoDirent(cde *C.struct_dirent) Dirent {
 	return &dirent{
 		name: C.GoString((*C.char)(&cde.d_name[0])),
-		kind: DirentType(C.uchar(cde.d_type)),
+		kind: DirentType(cde.d_type),
 	}
 }
 
@@ -136,8 +137,9 @@ func ReadDir(path string) ([]Dirent, error) {
 
 	// Get entries
 	result := make([]Dirent, 0, 2) // at least to for . and ..
+	dent := C.struct_dirent{}
 	for {
-		dent := C.struct_dirent{}
+		C.memset(unsafe.Pointer(&dent), 0, C.size_t(unsafe.Sizeof(dent)))
 		if C.do_readDir(dir, &dent) == nil {
 			break // done
 		}

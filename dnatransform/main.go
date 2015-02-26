@@ -170,7 +170,7 @@ func transform(c []byte) {
 
 func main() {
 	// Set # threads
-	runtime.GOMAXPROCS(NWorkers * 4)
+	runtime.GOMAXPROCS(NWorkers)
 
 	for _, fpath := range os.Args[1:] {
 		f, err := os.Open(fpath)
@@ -199,7 +199,7 @@ func main() {
 
 		// Send to our Chunker
 		t0 := time.Now()
-		res := Chunker(r, 4096) // 4k chunks
+		res := Chunker(r, 4096*4) // 16K chunks
 
 		// Discard output but count bytes read
 		var t1 time.Time
@@ -210,8 +210,10 @@ func main() {
 			}
 			bcount += len(chunk)
 		}
+		// Capture duration
+		d := time.Since(t0)
 
-		log.Printf("Process %d bytes in %s (started getting results after %s)", bcount, time.Since(t0), t1.Sub(t0))
+		log.Printf("Processed %d bytes in %s [%.3f MiB/s]; started getting results after %s.", bcount, d, float64(bcount)/(d.Seconds()*1024*1024), t1.Sub(t0))
 	}
 }
 

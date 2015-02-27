@@ -2,90 +2,204 @@ package main
 
 import (
 	"bufio"
+	"bytes"
 	"compress/gzip"
+	"flag"
 	"fmt"
 	"io"
 	"log"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"time"
+
+	"github.com/caelifer/gotests/dnatransform/scheduler"
 )
 
-// Worker's payload signature
-type Job func()
+var (
+	cpuprofile  = flag.String("cpuprofile", "", "write cpu profile to file")
+	memprofile  = flag.String("memprofile", "", "write memory profile to file")
+	workerCount = flag.Int("jobs", runtime.NumCPU(), "Number of parallel jobs")
+)
 
-// Worker interface
-type Worker interface {
-	Run(Job)
-}
+func main() {
+	// Parse commandline parameters
+	flag.Parse()
 
-// Worker implementation
-type worker struct {
-	id, jcount int
-}
+	// Set # threads
+	runtime.GOMAXPROCS(*workerCount)
 
-// Worker Run method syncronously executing provided Job.
-func (w *worker) Run(j Job) {
-	w.jcount++
-	// log.Printf("W[%02d] - running  job #%d", w.id, w.jcount)
-	j()
-	// log.Printf("W[%02d] - finished job #%d", w.id, w.jcount)
-}
-
-// Worker constructor
-func NewWorker(id int) Worker {
-	return &worker{id: id}
-}
-
-// Worker Pool
-
-// Scheduler
-type Sched struct {
-	pool chan Worker
-}
-
-// NewSched(n int) creates new scheduler and initializes worker pool
-func NewSched(n int) *Sched {
-	s := new(Sched)
-	s.pool = make(chan Worker, n)
-	for i := 0; i < n; i++ {
-		s.pool <- NewWorker(i)
+	// CPU profile
+	if *cpuprofile != "" {
+		f, err := os.Create(*cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
 	}
-	return s
-}
 
-func (s *Sched) getWorker() Worker {
-	return <-s.pool
-}
+	// Memory profile
+	if *memprofile != "" {
+		f, err := os.Create(*memprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer func() {
+			pprof.WriteHeapProfile(f)
+			f.Close()
+		}()
+	}
 
-func (s *Sched) returnWorker(w Worker) {
-	select {
-	case s.pool <- w:
-		return
-	default:
-		// there should never been more workers that we have originaly created
-		panic("pool is full")
+	for _, fpath := range flag.Args() {
+		f, err := os.Open(fpath)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer f.Close()
+
+		// Unzip
+		z, err := gzip.NewReader(f)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer z.Close()
+
+		// Send to our Chunker
+		t0 := time.Now()
+		res := chunker(labelFilter(z), *workerCount, 4096*4) // 16K chunks
+
+		// Discard output but count bytes read
+		var t1 time.Time
+		bcount := 0
+		for chunk := range res {
+			if bcount == 0 {
+				t1 = time.Now()
+			}
+			bcount += len(chunk)
+		}
+		// Capture duration
+		d := time.Since(t0)
+
+		log.Printf("Processed %d bytes in %s [%.3f MiB/s]; started getting results after %s.", bcount, d, float64(bcount)/(d.Seconds()*1024*1024), t1.Sub(t0))
 	}
 }
 
-func (s *Sched) Schedule(j Job) {
-	w := s.getWorker()
+func labelFilter(r io.Reader) io.Reader {
+	fr := &filtReader{out: make(chan []byte)}
 
-	// Once we have a worker, run it in a separate goroutine
+	// Wrap buffered reader
+	br := bufio.NewReader(r)
+
+	// Filter stream
 	go func() {
-		w.Run(j)
-		s.returnWorker(w)
+		for {
+			// Skip first line
+			line, err := br.ReadBytes('\n')
+			if err != nil {
+				if err == io.EOF {
+					close(fr.out)
+					return
+				} else {
+					log.Fatal(err)
+				}
+			}
+
+			if line[0] == '>' {
+				// Print label and skip
+				fmt.Print(string(line))
+			} else {
+				line = append(line, '\n')
+				fr.out <- line
+			}
+		}
 	}()
+
+	return fr
+}
+
+type filtReader struct {
+	out chan []byte
+	buf bytes.Buffer
+	eof bool
+}
+
+func (fr *filtReader) Read(buf []byte) (int, error) {
+	osize := len(buf)
+
+	// Drain our buffer if not empty
+	if fr.buf.Len() > 0 {
+		return fr.buf.Read(buf)
+	}
+
+	// If EOF already reached
+	if fr.eof {
+		return 0, io.EOF
+	}
+
+	// Get new chunk(s)
+	ngot := 0
+	for {
+		data, ok := <-fr.out
+		if data != nil {
+			n, err := fr.buf.Write(data)
+			if err != nil {
+				log.Fatal(err)
+			}
+			ngot += n
+		}
+
+		if !ok {
+			fr.eof = true
+			break
+		}
+
+		// Have enough
+		if ngot >= osize {
+			break
+		}
+	}
+	return fr.buf.Read(buf)
+}
+
+func chunker(r io.Reader, nworkers, bufsize int) <-chan []byte {
+	s := scheduler.New(nworkers)
+	head := make(chan []byte)
+
+	// Schedule in separate worker
+	s.Schedule(func() {
+		for {
+			chunk := make([]byte, bufsize) // 4K read chunk
+
+			n, err := r.Read(chunk)
+			if err != nil {
+				if err == io.EOF {
+					// Done reading
+					// log.Println("Done with Read()")
+					close(head) // Close curent head because we are done
+					return
+				}
+				log.Fatal(err)
+			}
+			// log.Printf("Read() %d bytes", n)
+
+			// Got another chunk, build daisy-chain
+			tail := piper(head, chunk[:n], s)
+			head = tail
+		}
+	})
+
+	return head
 }
 
 // Piper()
-func Piper(head chan<- []byte, chunk []byte, s *Sched) chan []byte {
+func piper(head chan<- []byte, chunk []byte, s scheduler.Scheduler) chan []byte {
 	// Create results chan
 	res := make(chan []byte)
 	// Schedule work, this may block if all workers are busy
 	s.Schedule(func() {
 		// log.Printf("sent: %+v", chunk)
-		transform(chunk)
+		Transform(chunk)
 		// log.Printf("recv: %+v", chunk)
 
 		// capture res channel
@@ -113,52 +227,12 @@ func Piper(head chan<- []byte, chunk []byte, s *Sched) chan []byte {
 	return tail
 }
 
-var NWorkers = runtime.NumCPU()
-
-func Chunker(r io.Reader, bufsize int) <-chan []byte {
-	s := NewSched(NWorkers)
-	head := make(chan []byte)
-
-	// Schedule in separate worker
-	s.Schedule(func() {
-		for {
-			chunk := make([]byte, bufsize) // 4K read chunk
-
-			n, err := r.Read(chunk)
-			if err != nil {
-				if err == io.EOF {
-					// Done reading
-					// log.Println("Done with Read()")
-					close(head) // Close curent head because we are done
-					return
-				}
-				log.Fatal(err)
-			}
-			// log.Printf("Read() %d bytes", n)
-
-			// Got another chunk, build daisy-chain
-			tail := Piper(head, chunk[:n], s)
-			head = tail
-		}
-	})
-
-	return head
-}
-
+// Fast DNA transformer
 var mod = byte(9)
 var dnsalpha = []byte{0, '\n', 'A', 'T', 'C', 0, 'N', 0, 'G', 0}
 var dnstrans = []byte{0, '\n', 'T', 'A', 'G', 0, 'N', 0, 'C', 0}
 
-func in(t byte) bool {
-	for _, b := range dnsalpha {
-		if b == t {
-			return true
-		}
-	}
-	return false
-}
-
-func transform(c []byte) {
+func Transform(c []byte) {
 	for i, v := range c {
 		if in(v) {
 			c[i] = dnstrans[v%mod]
@@ -168,53 +242,13 @@ func transform(c []byte) {
 	}
 }
 
-func main() {
-	// Set # threads
-	runtime.GOMAXPROCS(NWorkers)
-
-	for _, fpath := range os.Args[1:] {
-		f, err := os.Open(fpath)
-		if err != nil {
-			log.Fatal(err)
+func in(t byte) bool {
+	for _, b := range dnsalpha {
+		if b == t {
+			return true
 		}
-		defer f.Close()
-
-		// Unzip
-		z, err := gzip.NewReader(f)
-		if err != nil {
-			log.Fatal(err)
-		}
-		defer z.Close()
-
-		// Wrap buffered reader
-		r := bufio.NewReader(z)
-
-		// Skip first line
-		line, err := r.ReadString('\n')
-		if err != nil {
-			log.Fatal(err)
-		}
-		// Print label
-		fmt.Print(line)
-
-		// Send to our Chunker
-		t0 := time.Now()
-		res := Chunker(r, 4096*4) // 16K chunks
-
-		// Discard output but count bytes read
-		var t1 time.Time
-		bcount := 0
-		for chunk := range res {
-			if bcount == 0 {
-				t1 = time.Now()
-			}
-			bcount += len(chunk)
-		}
-		// Capture duration
-		d := time.Since(t0)
-
-		log.Printf("Processed %d bytes in %s [%.3f MiB/s]; started getting results after %s.", bcount, d, float64(bcount)/(d.Seconds()*1024*1024), t1.Sub(t0))
 	}
+	return false
 }
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////

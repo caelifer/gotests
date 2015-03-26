@@ -4,7 +4,7 @@ import "github.com/caelifer/gotests/dnatransform/scheduler/job"
 
 // Worker interface
 type Worker interface {
-	Run(job.Job)
+	Run(job.Interface)
 }
 
 // Worker implementation
@@ -13,7 +13,7 @@ type worker struct {
 }
 
 // Worker Run method syncronously executing provided Job.
-func (w *worker) Run(j job.Job) {
+func (w *worker) Run(j job.Interface) {
 	w.jcount++
 	// log.Printf("W[%02d] - running  job #%d", w.id, w.jcount)
 	j()

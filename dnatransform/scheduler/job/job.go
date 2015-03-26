@@ -1,4 +1,4 @@
 package job
 
 // Worker's payload signature
-type Job func()
+type Interface func()

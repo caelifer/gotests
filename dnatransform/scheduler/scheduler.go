@@ -6,7 +6,7 @@ import (
 )
 
 type Scheduler interface {
-	Schedule(job.Job)
+	Schedule(job.Interface)
 }
 
 // Scheduler
@@ -24,7 +24,7 @@ func New(n int) Scheduler {
 	return s
 }
 
-func (s *sched) getWorker() worker.Worker {
+func (s *sched) fetchWorker() worker.Worker {
 	return <-s.pool
 }
 
@@ -38,8 +38,8 @@ func (s *sched) putbackWorker(w worker.Worker) {
 	}
 }
 
-func (s *sched) Schedule(j job.Job) {
-	w := s.getWorker()
+func (s *sched) Schedule(j job.Interface) {
+	w := s.fetchWorker()
 
 	// Once we have a worker, run it in a separate goroutine
 	go func() {

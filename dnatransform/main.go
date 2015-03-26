@@ -86,9 +86,9 @@ func main() {
 }
 
 func labelFilter(r io.Reader) io.Reader {
-	fr := &filtReader{out: make(chan []byte)}
+	fr := &filtReader{out: make(chan []byte, 100)}
 
-	// Wrap buffered reader
+	// Wrap around buffered reader
 	br := bufio.NewReader(r)
 
 	// Filter stream

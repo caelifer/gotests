@@ -193,7 +193,7 @@ func chunker(r io.Reader, bufsize int) <-chan []byte {
 			// log.Printf("Read() %d bytes", n)
 
 			// Got another chunk, build daisy-chain
-			tail := piper(head, chunk[:n], GlobalScheduler)
+			tail := piper(head, chunk[:n])
 			head = tail
 		}
 	})
@@ -202,11 +202,11 @@ func chunker(r io.Reader, bufsize int) <-chan []byte {
 }
 
 // Piper()
-func piper(head chan<- []byte, chunk []byte, s scheduler.Scheduler) chan []byte {
+func piper(head chan<- []byte, chunk []byte) chan []byte {
 	// Create results chan
 	res := make(chan []byte)
 	// Schedule work, this may block if all workers are busy
-	s.Schedule(func() {
+	GlobalScheduler.Schedule(func() {
 		// log.Printf("sent: %+v", chunk)
 		Transform(chunk)
 		// log.Printf("recv: %+v", chunk)

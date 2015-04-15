@@ -48,8 +48,8 @@ func (c *ComplexRange) eval() (res []int) {
 
 func distinct(r []int) {
 	if len(r) > 0 {
-		filter := r[:1] // Reuse space
-		filter[0] = r[0]
+		filter := r[:1]  // Reuse space
+		filter[0] = r[0] // Always accept first number
 
 		old := r[0]
 		for _, v := range r {

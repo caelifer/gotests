@@ -13,16 +13,21 @@ import (
 	"runtime/pprof"
 	"time"
 
-	"github.com/caelifer/gotests/dnatransform/scheduler"
+	"github.com/caelifer/scheduler"
 )
 
-var (
-	cpuprofile  = flag.String("cpuprofile", "", "write cpu profile to file")
-	memprofile  = flag.String("memprofile", "", "write memory profile to file")
-	workerCount = flag.Int("jobs", runtime.NumCPU(), "Number of parallel jobs")
-)
+// Global scheduler
+var GlobalScheduler scheduler.Scheduler
 
 func main() {
+	// Make sure none of the subroutines have access to the command line variables
+	var (
+		cpuprofile     = flag.String("cpuprofile", "", "write cpu profile to file")
+		memprofile     = flag.String("memprofile", "", "write memory profile to file")
+		workerCount    = flag.Int("jobs", runtime.NumCPU()*2, "Number of parallel workers")
+		workQueueDepth = flag.Int("n", 64, "Number of queued jobs per worker")
+	)
+
 	// Parse commandline parameters
 	flag.Parse()
 
@@ -51,6 +56,9 @@ func main() {
 		}()
 	}
 
+	// Pre-init GlobalScheduler so the workers can all be started before we proceed
+	GlobalScheduler = scheduler.New(*workerCount, *workQueueDepth)
+
 	for _, fpath := range flag.Args() {
 		f, err := os.Open(fpath)
 		if err != nil {
@@ -67,7 +75,7 @@ func main() {
 
 		// Send to our Chunker
 		t0 := time.Now()
-		res := chunker(labelFilter(z), *workerCount, 4096*4) // 16K chunks
+		res := chunker(labelFilter(z), 4096*4) // 16K chunks
 
 		// Discard output but count bytes read
 		var t1 time.Time
@@ -83,6 +91,8 @@ func main() {
 
 		log.Printf("Processed %d bytes in %s [%.3f MiB/s]; started getting results after %s.", bcount, d, float64(bcount)/(d.Seconds()*1024*1024), t1.Sub(t0))
 	}
+
+	// panic("Stack Trace:")
 }
 
 func labelFilter(r io.Reader) io.Reader {
@@ -162,12 +172,11 @@ func (fr *filtReader) Read(buf []byte) (int, error) {
 	return fr.buf.Read(buf)
 }
 
-func chunker(r io.Reader, nworkers, bufsize int) <-chan []byte {
-	s := scheduler.New(nworkers)
+func chunker(r io.Reader, bufsize int) <-chan []byte {
 	head := make(chan []byte)
 
 	// Schedule in separate worker
-	s.Schedule(func() {
+	GlobalScheduler.Schedule(func() {
 		for {
 			chunk := make([]byte, bufsize) // 4K read chunk
 
@@ -184,7 +193,7 @@ func chunker(r io.Reader, nworkers, bufsize int) <-chan []byte {
 			// log.Printf("Read() %d bytes", n)
 
 			// Got another chunk, build daisy-chain
-			tail := piper(head, chunk[:n], s)
+			tail := piper(head, chunk[:n], GlobalScheduler)
 			head = tail
 		}
 	})

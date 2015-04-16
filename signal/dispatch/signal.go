@@ -3,22 +3,23 @@ package dispatch
 import (
 	"log"
 	"os"
-	syssignal "os/signal"
+	ssignal "os/signal"
 	"sync"
 )
 
-func init() {
-	// Set logger
-	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
-}
-
-// dispatcher
+// Dispatcher shared global
 var dispatcher = struct {
 	*sync.Mutex
 	signals map[os.Signal]chan os.Signal
 }{
 	new(sync.Mutex),
 	make(map[os.Signal]chan os.Signal),
+}
+
+// Package initializer
+func init() {
+	// Set logger
+	log.SetFlags(log.LstdFlags | log.Lshortfile | log.Lmicroseconds)
 }
 
 // SignalHandler is a custom function that handles os.Signal
@@ -46,7 +47,7 @@ func HandleSignal(signal os.Signal, handler SignalHandler) {
 	/////////////////////// protected section ///////////////////
 
 	// Set notification
-	syssignal.Notify(ch, signal)
+	ssignal.Notify(ch, signal)
 
 	// Install custom handler in the separate gorutine
 	go func(c <-chan os.Signal, sig os.Signal) {
@@ -70,7 +71,7 @@ func StopSignalHandler(signal os.Signal) {
 		log.Printf("unregistering existing [%s] handler", signal)
 
 		// Stop receiving signlas
-		syssignal.Stop(ch)
+		ssignal.Stop(ch)
 		// Close signal channel so gorutine can safely exit
 		close(ch)
 

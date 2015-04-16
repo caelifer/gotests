@@ -16,28 +16,25 @@ func main() {
 	// Install hadler
 	dispatch.HandleSignal(os.Interrupt, handleSIGINT_ONE)
 
-	periodic := time.Tick(500 * time.Millisecond)
-	start := time.Now()
+	// Record start time
+	t0 := time.Now()
 
-	for _ = range periodic {
+	for range time.Tick(500 * time.Millisecond) {
 		fmt.Print(".")
-		if time.Since(start) > 5*time.Second {
+		// Give time to user to press CTRL-C
+		if time.Since(t0) > 5*time.Second {
 			// Stop handling INT signal
 			dispatch.StopSignalHandler(os.Interrupt)
-			// Give time to user to press CTRL-C
-			// time.Sleep(3 * time.Second)
-			// Exit program
+			// Exit
 			return
 		}
 	}
 }
 
 // SIGINT custom handler one
-func handleSIGINT_ONE(signal os.Signal) {
+func handleSignal(signal os.Signal, sh dispatch.SignalHandler) {
 	// Atomically adjust counter
 	atomic.AddInt32(&sigCounter, 1)
-
-	fmt.Printf("\nHandler ONE: Got signal [%v]\n", signal)
 
 	// Atomically compare
 	if atomic.LoadInt32(&sigCounter) > 3 {
@@ -45,21 +42,17 @@ func handleSIGINT_ONE(signal os.Signal) {
 	}
 
 	// Install different signal in mid-flight
-	dispatch.HandleSignal(os.Interrupt, handleSIGINT_TWO)
+	dispatch.HandleSignal(os.Interrupt, sh)
+}
+
+// SIGINT custom handler two
+func handleSIGINT_ONE(signal os.Signal) {
+	fmt.Printf("\nHandler ONE: Got signal [%v]\n", signal)
+	handleSignal(signal, handleSIGINT_TWO)
 }
 
 // SIGINT custom handler two
 func handleSIGINT_TWO(signal os.Signal) {
-	// Atomically adjust counter
-	atomic.AddInt32(&sigCounter, 1)
-
 	fmt.Printf("\nHandler TWO: Got signal [%v]\n", signal)
-
-	// Atomically compare
-	if atomic.LoadInt32(&sigCounter) > 3 {
-		os.Exit(1)
-	}
-
-	// Install different signal in mid-flight
-	dispatch.HandleSignal(os.Interrupt, handleSIGINT_ONE)
+	handleSignal(signal, handleSIGINT_ONE)
 }

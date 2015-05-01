@@ -69,8 +69,6 @@ func (arrOfObjectsParser) Parse(jsn string) string {
 		// type switch
 		switch val := val.(type) {
 		case map[string]interface{}: // JSON object
-			res += "{"
-
 			tmp := make([]string, 0, 10)
 			for k, v := range val {
 				tmp = append(tmp, k+":"+v.(string))
@@ -79,8 +77,8 @@ func (arrOfObjectsParser) Parse(jsn string) string {
 			// Make order stable
 			sort.Strings(tmp)
 
-			res += strings.Join(tmp, ",")
-			res += "}"
+			// Update result var
+			res += "{" + strings.Join(tmp, ",") + "}"
 		default:
 			log.Println("Unexpected field type:", val)
 		}

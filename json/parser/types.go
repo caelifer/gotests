@@ -1,33 +1,34 @@
 package parser
 
-type MetaType int
+type metaType int
 
+// metaType values
 const (
-	MT_ERR MetaType = iota
-	MT_BOOL
-	MT_NUM
-	MT_STR
-	MT_ARROFSTR
-	MT_ARROFOBJ
+	MetaError metaType = iota
+	MetaBoolField
+	MetaNumberField
+	MetaStringField
+	MetaArrayOfStrings
+	MetaArrayOfObjects
 )
 
-func GetMeta(meta string) MetaType {
+func getMetaType(meta string) metaType {
 	switch meta {
 	case "stringField":
-		return MT_STR
+		return MetaStringField
 	case "arrayOfStrings":
-		return MT_ARROFSTR
+		return MetaArrayOfStrings
 	case "arrayOfObjects":
-		return MT_ARROFOBJ
+		return MetaArrayOfObjects
 	default:
-		return MT_ERR
+		return MetaError
 	}
 }
 
-// Dispatcher
-var Dispatch = make(map[MetaType]ChunkParser)
+// Dispatcher a package global
+var dispatcher = make(map[metaType]chunkJSONParser)
 
-func RegisterChunkParser(meta MetaType, parser ChunkParser) {
+func registerChunkParser(meta metaType, parser chunkJSONParser) {
 	// Install new parser
-	Dispatch[meta] = parser
+	dispatcher[meta] = parser
 }

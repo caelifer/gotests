@@ -7,20 +7,20 @@ import (
 	"strings"
 )
 
-type ChunkParser interface {
-	Parse(string) string
+type chunkJSONParser interface {
+	parse(string) string
 }
 
 // Chunk Parsers
 type errorParser struct{}
 
-func (errorParser) Parse(string) string {
+func (errorParser) parse(string) string {
 	return "BADPARSER"
 }
 
 type simpleStringFieldParser struct{}
 
-func (simpleStringFieldParser) Parse(jsn string) string {
+func (simpleStringFieldParser) parse(jsn string) string {
 	var data string
 	if err := json.Unmarshal([]byte(strings.SplitN(jsn, ":", 2)[1]), &data); err != nil {
 		log.Println("Parse string field error:", err)
@@ -31,7 +31,7 @@ func (simpleStringFieldParser) Parse(jsn string) string {
 
 type arrOfStringParser struct{}
 
-func (arrOfStringParser) Parse(jsn string) string {
+func (arrOfStringParser) parse(jsn string) string {
 	arr := strings.SplitN(jsn, ":", 2)[1] // array part
 	var data []interface{}
 	if err := json.Unmarshal([]byte(arr), &data); err != nil {
@@ -52,7 +52,7 @@ func (arrOfStringParser) Parse(jsn string) string {
 
 type arrOfObjectsParser struct{}
 
-func (arrOfObjectsParser) Parse(jsn string) string {
+func (arrOfObjectsParser) parse(jsn string) string {
 	arr := strings.SplitN(jsn, ":", 2)[1] // array part
 	var data []interface{}
 	if err := json.Unmarshal([]byte(arr), &data); err != nil {
@@ -89,9 +89,10 @@ func (arrOfObjectsParser) Parse(jsn string) string {
 // Register our chunk parser
 func init() {
 	// Register our chunk parsers
-	RegisterChunkParser(MT_ERR, errorParser{})
-	RegisterChunkParser(MT_STR, simpleStringFieldParser{})
-	RegisterChunkParser(MT_ARROFSTR, arrOfStringParser{})
-	RegisterChunkParser(MT_ARROFOBJ, arrOfObjectsParser{})
-	// RegisterChunkParser(MT_ARROFOBJ, simpleNumFieldParser{})
+	registerChunkParser(MetaError, errorParser{})
+	registerChunkParser(MetaStringField, simpleStringFieldParser{})
+	registerChunkParser(MetaArrayOfStrings, arrOfStringParser{})
+	registerChunkParser(MetaArrayOfObjects, arrOfObjectsParser{})
+	// RegisterChunkParser(MetaNumberField, simpleNumFieldParser{})
+	// RegisterChunkParser(MetaBoolField, simpleBoolFieldParser{})
 }

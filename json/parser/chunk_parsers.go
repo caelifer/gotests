@@ -21,7 +21,7 @@ type simpleStringFieldParser struct{}
 
 func (simpleStringFieldParser) Parse(jsn string) string {
 	var data string
-	if err := json.Unmarshal([]byte(strings.Split(jsn, ":")[1]), &data); err != nil {
+	if err := json.Unmarshal([]byte(strings.SplitN(jsn, ":", 2)[1]), &data); err != nil {
 		log.Println("Parse string field error:", err)
 		return ""
 	}
@@ -31,7 +31,7 @@ func (simpleStringFieldParser) Parse(jsn string) string {
 type arrOfStringParser struct{}
 
 func (arrOfStringParser) Parse(jsn string) string {
-	arr := strings.Split(jsn, ":")[1] // array part
+	arr := strings.SplitN(jsn, ":", 2)[1] // array part
 	var data []interface{}
 	if err := json.Unmarshal([]byte(arr), &data); err != nil {
 		log.Println("Parse array of strings field error:", err)

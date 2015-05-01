@@ -13,7 +13,7 @@ import (
 var sigCounter int32 = 0
 
 func main() {
-	// Install hadler
+	// Install dispatch's handler
 	dispatch.HandleSignal(os.Interrupt, handleSIGINT_ONE)
 
 	// Record start time
@@ -24,14 +24,14 @@ func main() {
 		// Give time to user to press CTRL-C
 		if time.Since(t0) > 5*time.Second {
 			// Stop handling INT signal
-			dispatch.StopSignalHandler(os.Interrupt)
+			dispatch.StopHandleSignal(os.Interrupt)
 			// Exit
 			return
 		}
 	}
 }
 
-// SIGINT custom handler one
+// Generic signal handler
 func handleSignal(signal os.Signal, sh dispatch.SignalHandler) {
 	// Atomically adjust counter
 	atomic.AddInt32(&sigCounter, 1)
@@ -42,10 +42,10 @@ func handleSignal(signal os.Signal, sh dispatch.SignalHandler) {
 	}
 
 	// Install different signal in mid-flight
-	dispatch.HandleSignal(os.Interrupt, sh)
+	dispatch.HandleSignal(signal, sh)
 }
 
-// SIGINT custom handler two
+// SIGINT custom handler one
 func handleSIGINT_ONE(signal os.Signal) {
 	fmt.Printf("\nHandler ONE: Got signal [%v]\n", signal)
 	handleSignal(signal, handleSIGINT_TWO)

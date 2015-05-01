@@ -28,7 +28,7 @@ type SignalHandler func(os.Signal)
 // HandleSignal installs custom handler for a particular os.Signal provided by signal.
 func HandleSignal(signal os.Signal, handler SignalHandler) {
 	// Uneregister handler if it exists
-	StopSignalHandler(signal)
+	StopHandleSignal(signal)
 
 	log.Printf("registering new [%s] handler", signal)
 
@@ -58,9 +58,9 @@ func HandleSignal(signal os.Signal, handler SignalHandler) {
 	}(ch, signal)
 }
 
-// StopSignalHandler safely stops signal handling for signal specified by signal.
-// If no hanlder exists, this function is noop.
-func StopSignalHandler(signal os.Signal) {
+// StopHandleSignal safely stops signal handling for signal specified by signal.
+// If no handler exists, this function is noop.
+func StopHandleSignal(signal os.Signal) {
 	// Take exclusive lock
 	dispatcher.Lock()
 	defer dispatcher.Unlock()

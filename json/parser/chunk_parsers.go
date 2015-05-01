@@ -3,6 +3,7 @@ package parser
 import (
 	"encoding/json"
 	"log"
+	"sort"
 	"strings"
 )
 
@@ -69,14 +70,16 @@ func (arrOfObjectsParser) Parse(jsn string) string {
 		switch val := val.(type) {
 		case map[string]interface{}: // JSON object
 			res += "{"
-			n := 0
+
+			tmp := make([]string, 0, 10)
 			for k, v := range val {
-				if n > 0 {
-					res += ","
-				}
-				res += k + ":" + v.(string)
-				n++
+				tmp = append(tmp, k+":"+v.(string))
 			}
+
+			// Make order stable
+			sort.Strings(tmp)
+
+			res += strings.Join(tmp, ",")
 			res += "}"
 		default:
 			log.Println("Unexpected field type:", val)

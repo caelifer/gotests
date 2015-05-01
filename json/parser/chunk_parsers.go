@@ -89,9 +89,9 @@ func (arrOfObjectsParser) Parse(jsn string) string {
 // Register our chunk parser
 func init() {
 	// Register our chunk parsers
-	RegisterChunkParser(MT_ERR, new(errorParser))
-	RegisterChunkParser(MT_STR, new(simpleStringFieldParser))
-	RegisterChunkParser(MT_ARROFSTR, new(arrOfStringParser))
-	RegisterChunkParser(MT_ARROFOBJ, new(arrOfObjectsParser))
-	// RegisterChunkParser(MT_ARROFOBJ, new(simpleNumFieldParser))
+	RegisterChunkParser(MT_ERR, errorParser{})
+	RegisterChunkParser(MT_STR, simpleStringFieldParser{})
+	RegisterChunkParser(MT_ARROFSTR, arrOfStringParser{})
+	RegisterChunkParser(MT_ARROFOBJ, arrOfObjectsParser{})
+	// RegisterChunkParser(MT_ARROFOBJ, simpleNumFieldParser{})
 }

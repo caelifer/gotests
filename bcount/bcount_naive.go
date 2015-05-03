@@ -7,7 +7,6 @@ func naiveCountBitsInUint8(b uint8) int {
 		n += 0x1 & (b >> i)
 	}
 
-	// Never reached
 	return int(n)
 }
 

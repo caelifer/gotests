@@ -22,7 +22,7 @@ func main() {
 		"",
 	}
 	for _, t := range tests {
-		fmt.Println(ParseComplexRangeExpr(t).eval())
+		fmt.Printf("%-10s - %+v\n\n", t, ParseComplexRangeExpr(t).eval())
 	}
 }
 

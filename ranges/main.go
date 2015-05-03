@@ -41,12 +41,12 @@ func (c *ComplexRange) eval() (res []int) {
 
 	sort.Ints(res)
 
-	distinct(res)
+	res = distinct(res)
 
 	return
 }
 
-func distinct(r []int) {
+func distinct(r []int) []int {
 	if len(r) > 0 {
 		filter := r[:1]  // Reuse space
 		filter[0] = r[0] // Always accept first number
@@ -59,8 +59,9 @@ func distinct(r []int) {
 				filter = append(filter, v)
 			}
 		}
-		r = filter
+		return filter
 	}
+	return r
 }
 
 func ParseComplexRangeExpr(expr string) *ComplexRange {

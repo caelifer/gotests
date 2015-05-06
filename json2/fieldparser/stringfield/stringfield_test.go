@@ -5,7 +5,7 @@ import (
 
 	"github.com/caelifer/gotests/json2/fieldparser"
 
-	// Load all supported field parsers
+	// Load required field parser
 	_ "github.com/caelifer/gotests/json2/fieldparser/stringfield"
 )
 
@@ -51,12 +51,6 @@ func TestStringFieldParser(t *testing.T) {
 			want: "dummytest",
 			err:  nil,
 		},
-		{
-			meta: meta{"test", "string"},
-			jsn:  []byte(`"test": "testval"`),
-			want: "testval",
-			err:  nil,
-		},
 	}
 
 	for _, tst := range tests {
@@ -78,7 +72,7 @@ func TestStringFieldParser(t *testing.T) {
 	}
 }
 
-// Test structure that implements fieldparser.Meta interface
+// Mock type that implements fieldparser.Meta interface
 type meta struct {
 	id, kind string
 }

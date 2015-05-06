@@ -10,12 +10,12 @@ import (
 	"github.com/caelifer/gotests/json2/ranker/rules"
 )
 
-type StringFieldParser struct {
+type NumberFieldParser struct {
 	name  string
 	rules []rules.Rule
 }
 
-func (sp StringFieldParser) Score(cond interface{}) ranker.MatchScore {
+func (sp NumberFieldParser) Score(cond interface{}) ranker.MatchScore {
 	if rules.All(cond, sp.rules...) {
 		return ranker.PartialMatch
 	}
@@ -23,7 +23,7 @@ func (sp StringFieldParser) Score(cond interface{}) ranker.MatchScore {
 	return ranker.NoMatch
 }
 
-func (sp StringFieldParser) Parse(meta fieldparser.Meta, data []byte) (string, error) {
+func (sp NumberFieldParser) Parse(meta fieldparser.Meta, data []byte) (string, error) {
 	var (
 		key   string
 		value float64
@@ -55,12 +55,12 @@ func (sp StringFieldParser) Parse(meta fieldparser.Meta, data []byte) (string, e
 
 func init() {
 	fieldparser.RegisterParser(
-		StringFieldParser{
+		NumberFieldParser{
 			name: "NumberFieldParser",
 			// Add rules
 			rules: append([]rules.Rule{},
 				rules.MakeRule(
-					"StringFieldType",
+					"NumberFieldType",
 					func(cond interface{}) bool {
 						// Make sure to handle run-time type narrowing properly
 						if meta, ok := cond.(fieldparser.Meta); ok {

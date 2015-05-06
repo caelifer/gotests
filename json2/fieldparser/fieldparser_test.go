@@ -17,6 +17,12 @@ func TestFieldParsers(t *testing.T) {
 		want string
 		err  error
 	}{
+		// 		{
+		// 			meta: meta{"dummy", "boolean"},
+		// 			jsn:  []byte(`"dummy": true`),
+		// 			want: "true",
+		// 			err:  nil,
+		// 		},
 		{
 			meta: meta{"dummy", "number"},
 			jsn:  []byte(`"dummy": 1234.5`),

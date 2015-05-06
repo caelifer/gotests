@@ -6,6 +6,11 @@ type Rule interface {
 }
 
 func Not(r Rule) Rule {
+	// protect from invalid use
+	if r == nil {
+		return nil
+	}
+
 	return MakeRule(
 		r.Name(),
 		func(cond interface{}) bool {

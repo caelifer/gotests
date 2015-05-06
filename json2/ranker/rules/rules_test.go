@@ -13,6 +13,12 @@ var True = rules.MakeRule(
 	},
 )
 
+func TestNotNil(t *testing.T) {
+	if res := rules.Not(nil); res != nil {
+		t.Errorf("[FAILED] got: %v, wanted: %v", res, nil)
+	}
+}
+
 func TestNot(t *testing.T) {
 	if res := rules.Not(True).Assert(nil); res != false {
 		t.Errorf("[FAILED] got: %v, wanted: %v", res, false)

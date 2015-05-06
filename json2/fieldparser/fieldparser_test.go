@@ -10,6 +10,35 @@ import (
 	_ "github.com/caelifer/gotests/json2/fieldparser/stringfield"
 )
 
+func TestFieldParserErrors(t *testing.T) {
+	tests := []struct {
+		meta fieldparser.Meta
+		jsn  []byte
+		want string
+		err  error
+	}{
+		{
+			meta: meta{"dummy", "boolean"},
+			jsn:  []byte(`"dummy": true`),
+			want: "true",
+			err:  fieldparser.NoMatchingParserError,
+		},
+	}
+
+	for _, tst := range tests {
+		_, err := fieldparser.ParseJiraField(tst.meta, tst.jsn)
+
+		// Check error first
+		if err != nil {
+			if tst.err != err {
+				t.Errorf("Unexpected error: %v", err)
+			}
+		} else {
+			t.Errorf("Unexpected success -  got %v, wanted: %q for input: %s", err, tst.err, string(tst.jsn))
+		}
+	}
+}
+
 func TestFieldParsers(t *testing.T) {
 	tests := []struct {
 		meta fieldparser.Meta
@@ -17,12 +46,6 @@ func TestFieldParsers(t *testing.T) {
 		want string
 		err  error
 	}{
-		// 		{
-		// 			meta: meta{"dummy", "boolean"},
-		// 			jsn:  []byte(`"dummy": true`),
-		// 			want: "true",
-		// 			err:  nil,
-		// 		},
 		{
 			meta: meta{"dummy", "number"},
 			jsn:  []byte(`"dummy": 1234.5`),

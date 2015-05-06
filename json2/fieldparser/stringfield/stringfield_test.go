@@ -18,7 +18,7 @@ func TestStringFieldParserError(t *testing.T) {
 	}{
 		{
 			meta: meta{"dummy", "string2"},
-			jsn:  []byte(`{"dummy": "dummytest"}`),
+			jsn:  []byte(`"dummy": "dummytest"`),
 			want: "",
 			err:  fieldparser.NoMatchingParserError,
 		},
@@ -31,8 +31,6 @@ func TestStringFieldParserError(t *testing.T) {
 		if err != nil {
 			if tst.err != err {
 				t.Errorf("Unexpected error: %v", err)
-			} else {
-				t.Logf("Captured error: %v", err)
 			}
 		} else {
 			t.Errorf("Unexpected success -  got %v, wanted: %q for input: %s", err, tst.err, string(tst.jsn))
@@ -49,13 +47,13 @@ func TestStringFieldParser(t *testing.T) {
 	}{
 		{
 			meta: meta{"dummy", "string"},
-			jsn:  []byte(`{"dummy": "dummytest"}`),
+			jsn:  []byte(`"dummy": "dummytest"`),
 			want: "dummytest",
 			err:  nil,
 		},
 		{
 			meta: meta{"test", "string"},
-			jsn:  []byte(`{"test": "testval"}`),
+			jsn:  []byte(`"test": "testval"`),
 			want: "testval",
 			err:  nil,
 		},

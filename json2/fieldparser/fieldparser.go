@@ -8,6 +8,8 @@ import (
 
 // Errors
 var (
+	BadFieldParserError   = errors.New("Bad FiedlParser conversion")
+	BadMetaError          = errors.New("Bad meta provided")
 	NoMatchingParserError = errors.New("No matching parser found")
 )
 
@@ -29,7 +31,7 @@ type Schema struct {
 // FieldParser - an interface for custom Jira field parsers
 type FieldParser interface {
 	Score(interface{}) ranker.MatchScore
-	Parse(jsonChunk []byte) (string, error)
+	Parse(Meta, []byte) (string, error)
 }
 
 // ParseJiraField
@@ -39,7 +41,12 @@ func ParseJiraField(meta Meta, jsn []byte) (string, error) {
 		return "", NoMatchingParserError
 	}
 
-	return fp.(FieldParser).Parse(jsn) // Assert correct type
+	// Correctly handle type coercion
+	if fp, ok := fp.(FieldParser); ok {
+		return fp.Parse(meta, jsn)
+	}
+
+	return "", BadFieldParserError
 }
 
 // RegisterParser

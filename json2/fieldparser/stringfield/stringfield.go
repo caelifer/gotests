@@ -22,21 +22,21 @@ func (sp StringFieldParser) Score(cond interface{}) ranker.MatchScore {
 	return ranker.NoMatch
 }
 
-func (sp StringFieldParser) Parse(meta fieldparser.Meta, jsn []byte) (string, error) {
+func (sp StringFieldParser) Parse(meta fieldparser.Meta, data []byte) (string, error) {
 	var key, value string
 
 	// Split on key/value
-	rdata := bytes.SplitN(jsn, []byte(":"), 2)
+	parts := bytes.SplitN(data, []byte(":"), 2)
 
 	// Parse JSON chunk
 
 	// Key
-	if err := json.Unmarshal(rdata[0], &key); err != nil {
+	if err := json.Unmarshal(parts[0], &key); err != nil {
 		return "", err
 	}
 
 	// Value
-	if err := json.Unmarshal(rdata[1], &value); err != nil {
+	if err := json.Unmarshal(parts[1], &value); err != nil {
 		return "", err
 	}
 

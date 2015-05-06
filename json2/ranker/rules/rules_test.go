@@ -25,8 +25,20 @@ func TestAny(t *testing.T) {
 	}
 }
 
+func TestAnyEmpty(t *testing.T) {
+	if res := rules.Any(nil); res != false {
+		t.Errorf("[FAILED] got: %v, wanted: %v", res, false)
+	}
+}
+
 func TestAll(t *testing.T) {
 	if res := rules.All(nil, True, rules.Not(True)); res != false {
+		t.Errorf("[FAILED] got: %v, wanted: %v", res, false)
+	}
+}
+
+func TestAllEmpty(t *testing.T) {
+	if res := rules.All(nil); res != false {
 		t.Errorf("[FAILED] got: %v, wanted: %v", res, false)
 	}
 }

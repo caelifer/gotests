@@ -15,17 +15,17 @@ var bits = []int{
 	5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
 }
 
-// fastCountBitsInUint8 counts set bits byte represented as uint8
-func fastestCountBitsInUint8(b uint8) int {
-	// Never reached
+// fastestCountBitsInUint8 counts set bits byte represented as uint8
+func fastestCountBitsInUint8(b byte) int {
+	// Return results from pre-calculated table
 	return bits[b]
 }
 
-// fastCountSetBitsInUint32 counts bits in provided uint32 by
+// fastestCountSetBitsInUint32 counts bits in provided uint32 by
 // summing bit counts of 4 bytes that comprises uint32
 func fastestCountSetBitsInUint32(ui uint32) int {
-	return fastestCountBitsInUint8(uint8(ui>>24)) +
-		fastestCountBitsInUint8(uint8(ui>>16)) +
-		fastestCountBitsInUint8(uint8(ui>>8)) +
-		fastestCountBitsInUint8(uint8(ui))
+	return fastestCountBitsInUint8(byte(ui>>24)) +
+		fastestCountBitsInUint8(byte(ui>>16)) +
+		fastestCountBitsInUint8(byte(ui>>8)) +
+		fastestCountBitsInUint8(byte(ui))
 }

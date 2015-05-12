@@ -1,7 +1,7 @@
 package main
 
 // fastCountBitsInUint8 counts set bits byte represented as uint8
-func fastCountBitsInUint8(b uint8) int {
+func fastCountBitsInUint8(b byte) int {
 	switch b {
 	case 0:
 		return 0
@@ -51,8 +51,8 @@ func fastCountBitsInUint8(b uint8) int {
 // fastCountSetBitsInUint32 counts bits in provided uint32 by
 // summing bit counts of 4 bytes that comprises uint32
 func fastCountSetBitsInUint32(ui uint32) int {
-	return fastCountBitsInUint8(uint8(ui>>24)) +
-		fastCountBitsInUint8(uint8(ui>>16)) +
-		fastCountBitsInUint8(uint8(ui>>8)) +
-		fastCountBitsInUint8(uint8(ui))
+	return fastCountBitsInUint8(byte(ui>>24)) +
+		fastCountBitsInUint8(byte(ui>>16)) +
+		fastCountBitsInUint8(byte(ui>>8)) +
+		fastCountBitsInUint8(byte(ui))
 }

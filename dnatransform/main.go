@@ -59,12 +59,26 @@ func main() {
 	// Pre-init GlobalScheduler so the workers can all be started before we proceed
 	GlobalScheduler = scheduler.New(*workerCount, *workQueueDepth)
 
+	// Setup input
+	if len(flag.Args()) == 0 {
+		// add stdin
+		os.Args = append(os.Args, "-")
+		flag.Parse()
+	}
+
 	for _, fpath := range flag.Args() {
-		f, err := os.Open(fpath)
-		if err != nil {
-			log.Fatal(err)
+		var f io.ReadCloser
+		var err error
+
+		if fpath == "-" {
+			f = os.Stdin
+		} else {
+			f, err = os.Open(fpath)
+			if err != nil {
+				log.Fatal(err)
+			}
+			defer f.Close()
 		}
-		defer f.Close()
 
 		// Unzip
 		z, err := gzip.NewReader(f)

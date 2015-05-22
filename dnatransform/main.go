@@ -61,11 +61,12 @@ func main() {
 
 	// Setup input
 	if len(flag.Args()) == 0 {
-		// add stdin
+		// add stdin marker
 		os.Args = append(os.Args, "-")
-		flag.Parse()
+		flag.Parse() // Reparse CLI parameters
 	}
 
+	// Process all files on the command line
 	for _, fpath := range flag.Args() {
 		var f io.ReadCloser
 		var err error
@@ -89,7 +90,7 @@ func main() {
 
 		// Send to our Chunker
 		t0 := time.Now()
-		res := chunker(labelFilter(z), 4096*4) // 16K chunks
+		res := chunker(NewLabelFilteredReader(z), 4096*4) // 16K chunks
 
 		// Discard output but count bytes read
 		var t1 time.Time
@@ -105,12 +106,10 @@ func main() {
 
 		log.Printf("Processed %d bytes in %s [%.3f MiB/s]; started getting results after %s.", bcount, d, float64(bcount)/(d.Seconds()*1024*1024), t1.Sub(t0))
 	}
-
-	// panic("Stack Trace:")
 }
 
-func labelFilter(r io.Reader) io.Reader {
-	fr := &filtReader{out: make(chan []byte, 100)}
+func NewLabelFilteredReader(r io.Reader) io.Reader {
+	fr := &ChanReader{in: make(chan []byte, 100)}
 
 	// Wrap around buffered reader
 	br := bufio.NewReader(r)
@@ -122,7 +121,7 @@ func labelFilter(r io.Reader) io.Reader {
 			line, err := br.ReadBytes('\n')
 			if err != nil {
 				if err == io.EOF {
-					close(fr.out)
+					close(fr.in)
 					return
 				} else {
 					log.Fatal(err)
@@ -134,7 +133,7 @@ func labelFilter(r io.Reader) io.Reader {
 				fmt.Print(string(line))
 			} else {
 				line = append(line, '\n')
-				fr.out <- line
+				fr.in <- line
 			}
 		}
 	}()
@@ -142,13 +141,13 @@ func labelFilter(r io.Reader) io.Reader {
 	return fr
 }
 
-type filtReader struct {
-	out chan []byte
+type ChanReader struct {
+	in  chan []byte
 	buf bytes.Buffer
 	eof bool
 }
 
-func (fr *filtReader) Read(buf []byte) (int, error) {
+func (fr *ChanReader) Read(buf []byte) (int, error) {
 	osize := len(buf)
 
 	// Drain our buffer if not empty
@@ -164,7 +163,7 @@ func (fr *filtReader) Read(buf []byte) (int, error) {
 	// Get new chunk(s)
 	ngot := 0
 	for {
-		data, ok := <-fr.out
+		data, ok := <-fr.in
 		if data != nil {
 			n, err := fr.buf.Write(data)
 			if err != nil {
@@ -192,14 +191,14 @@ func chunker(r io.Reader, bufsize int) <-chan []byte {
 	// Schedule in separate worker
 	GlobalScheduler.Schedule(func() {
 		for {
-			chunk := make([]byte, bufsize) // 4K read chunk
+			chunk := make([]byte, bufsize) // bufsized read chunks
 
 			n, err := r.Read(chunk)
 			if err != nil {
 				if err == io.EOF {
 					// Done reading
 					// log.Println("Done with Read()")
-					close(head) // Close curent head because we are done
+					close(head) // Close current head because we are done
 					return
 				}
 				log.Fatal(err)
@@ -257,7 +256,7 @@ var dnstrans = []byte{0, '\n', 'T', 'A', 'G', 0, 'N', 0, 'C', 0}
 
 func Transform(c []byte) {
 	for i, v := range c {
-		if in(v) {
+		if isIn(v) {
 			c[i] = dnstrans[v%mod]
 		} else {
 			log.Fatalf("[WARN] bad symbol '%c' in %q", v, string(c))
@@ -265,7 +264,7 @@ func Transform(c []byte) {
 	}
 }
 
-func in(t byte) bool {
+func isIn(t byte) bool {
 	for _, b := range dnsalpha {
 		if b == t {
 			return true

@@ -53,7 +53,7 @@ func distinct(r []int) []int {
 
 		old := r[0]
 		for _, v := range r {
-			// inplace
+			// in place
 			if v != old {
 				old = v
 				filter = append(filter, v)
@@ -95,8 +95,7 @@ func ParseRangeExpr(expr string) *Range {
 	switch l := len(parts); l {
 	case 1:
 		if ival1, err := strconv.Atoi(parts[0]); err == nil {
-			// Deal with one
-			// number range
+			// Deal with one number range
 			vals = append(vals, ival1)
 		} else {
 			log.Printf("bad number %q in sub-range %q - %v", parts[0], expr, err)

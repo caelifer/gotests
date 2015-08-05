@@ -3,7 +3,7 @@ package dispatch
 import (
 	"log"
 	"os"
-	ssignal "os/signal"
+	"os/signal"
 	"sync"
 )
 
@@ -26,11 +26,11 @@ func init() {
 type SignalHandler func(os.Signal)
 
 // HandleSignal installs custom handler for a particular os.Signal provided by signal.
-func HandleSignal(signal os.Signal, handler SignalHandler) {
+func HandleSignal(sig os.Signal, handler SignalHandler) {
 	// Uneregister handler if it exists
-	StopHandleSignal(signal)
+	StopHandleSignal(sig)
 
-	log.Printf("registering new [%s] handler", signal)
+	log.Printf("registering new [%s] handler", sig)
 
 	// Create buffered channel of os.Signal values
 	ch := make(chan os.Signal, 1)
@@ -40,14 +40,14 @@ func HandleSignal(signal os.Signal, handler SignalHandler) {
 	dispatcher.Lock()
 
 	// Install our new channel
-	dispatcher.signals[signal] = ch
+	dispatcher.signals[sig] = ch
 
 	// Fast unlock
 	dispatcher.Unlock()
 	/////////////////////// protected section ///////////////////
 
 	// Set notification
-	ssignal.Notify(ch, signal)
+	signal.Notify(ch, sig)
 
 	// Install custom handler in the separate gorutine
 	go func(c <-chan os.Signal, sig os.Signal) {
@@ -55,27 +55,27 @@ func HandleSignal(signal os.Signal, handler SignalHandler) {
 			handler(s)
 		}
 		log.Printf("exiting [%s] handler", sig)
-	}(ch, signal)
+	}(ch, sig)
 }
 
 // StopHandleSignal safely stops signal handling for signal specified by signal.
 // If no handler exists, this function is noop.
-func StopHandleSignal(signal os.Signal) {
+func StopHandleSignal(sig os.Signal) {
 	// Take exclusive lock
 	dispatcher.Lock()
 	defer dispatcher.Unlock()
 
 	// Check if we already have registered handler
-	if ch, ok := dispatcher.signals[signal]; ok {
+	if ch, ok := dispatcher.signals[sig]; ok {
 		// Signal handler already exists - do clean-up
-		log.Printf("unregistering existing [%s] handler", signal)
+		log.Printf("unregistering existing [%s] handler", sig)
 
 		// Stop receiving signlas
-		ssignal.Stop(ch)
+		signal.Stop(ch)
 		// Close signal channel so gorutine can safely exit
 		close(ch)
 
 		// Clear our signal table
-		delete(dispatcher.signals, signal)
+		delete(dispatcher.signals, sig)
 	}
 }

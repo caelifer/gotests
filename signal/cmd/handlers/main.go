@@ -22,7 +22,7 @@ func main() {
 	for range time.Tick(500 * time.Millisecond) {
 		fmt.Print(".")
 		// Give time to user to press CTRL-C
-		if time.Since(t0) > 5*time.Second {
+		if time.Since(t0) > 10*time.Second {
 			// Stop handling INT signal
 			dispatch.StopHandleSignal(os.Interrupt)
 			// Exit
@@ -37,7 +37,7 @@ func handleSignal(signal os.Signal, sh dispatch.SignalHandler) {
 	atomic.AddInt32(&sigCounter, 1)
 
 	// Atomically compare
-	if atomic.LoadInt32(&sigCounter) > 3 {
+	if atomic.LoadInt32(&sigCounter) > 2 {
 		os.Exit(1)
 	}
 
@@ -48,11 +48,13 @@ func handleSignal(signal os.Signal, sh dispatch.SignalHandler) {
 // SIGINT custom handler one
 func handleSIGINT_ONE(signal os.Signal) {
 	fmt.Printf("\nHandler ONE: Got signal [%v]\n", signal)
+	// Register handler #2
 	handleSignal(signal, handleSIGINT_TWO)
 }
 
 // SIGINT custom handler two
 func handleSIGINT_TWO(signal os.Signal) {
 	fmt.Printf("\nHandler TWO: Got signal [%v]\n", signal)
+	// Register handler #1
 	handleSignal(signal, handleSIGINT_ONE)
 }

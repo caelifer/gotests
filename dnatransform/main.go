@@ -116,12 +116,15 @@ func NewLabelFilteredReader(r io.Reader) io.Reader {
 
 	// Filter stream
 	go func() {
+		defer close(fr.in)
 		for {
 			// Skip first line
 			line, err := br.ReadBytes('\n')
 			if err != nil {
 				if err == io.EOF {
-					close(fr.in)
+					if len(line) != 0 {
+						log.Fatal("There should be no output on EOF")
+					}
 					return
 				} else {
 					log.Fatal(err)

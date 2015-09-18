@@ -2,60 +2,69 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"runtime"
+	"strconv"
 	"time"
 )
 
-func ringer(nodes, nmsgs int) time.Duration {
+func ringer(nodes, nmsgs int) int {
 	// Create ring
-	in, out := createRing(nodes)
+	res := make(chan int)
+	in := createRing(nodes, res)
 
-	// Start timer
-	t0 := time.Now()
+	// Send token
+	in <- nmsgs
+	runtime.Gosched()
 
-	// Send and receive nmsgs messages
-	send(in, nmsgs)
-	recv(out, nmsgs)
-
-	// Calculate time
-	return time.Since(t0)
+	// Report id
+	return <-res
 }
 
-func createRing(nodes int) (chan<- struct{}, <-chan struct{}) {
-	in := make(chan struct{})
+func createRing(nodes int, res chan int) chan int {
+	in := make(chan int)
 	out := in
 
-	for i := 0; i < nodes; i++ {
-		out = makeLink(out)
+	i := 1
+	for ; i < nodes; i++ {
+		out = makeLink(i, out, res)
 	}
 
-	return in, out
-}
+	fmt.Println("Creating final thread #:", i)
+	go link(i, out, in, res)
 
-func send(in chan<- struct{}, n int) {
-	go func() {
-		for i := 0; i < n; i++ {
-			// Send message around the ring
-			in <- struct{}{}
-		}
-	}()
-}
-
-func recv(out <-chan struct{}, n int) {
-	for i := 0; i < n; i++ {
-		<-out
-	}
-}
-
-func makeLink(out <-chan struct{}) chan struct{} {
-	in := make(chan struct{})
-	go func() {
-		for {
-			in <- <-out
-		}
-	}()
 	return in
 }
 
+func link(id int, in <-chan int, out chan<- int, res chan int) {
+	for {
+		i := <-in
+		if i == 0 {
+			res <- id
+			return
+		}
+
+		out <- i - 1
+	}
+}
+
+func makeLink(id int, in <-chan int, res chan int) chan int {
+	out := make(chan int)
+	go link(id, in, out, res)
+	return out
+}
+
 func main() {
-	fmt.Println(ringer(1000, 1000))
+	n := 1000
+
+	if len(os.Args) > 1 {
+		n, _ = strconv.Atoi(os.Args[1])
+	}
+
+	runtime.GOMAXPROCS(1)
+
+	// Start timer
+	t0 := time.Now()
+	r := ringer(503, n)
+	fmt.Println(r, time.Since(t0))
 }

@@ -23,6 +23,10 @@ func main() {
 		c.Start()
 		c.Wait()
 		c.Reset()
+
+		// Remove a task
+		tasks = tasks[:len(tasks) - 1]
+
 		if i < 2 {
 			fmt.Println("--------")
 		}

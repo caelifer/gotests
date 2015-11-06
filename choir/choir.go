@@ -8,9 +8,9 @@ type Choir struct {
 }
 
 func New() *Choir {
-	return &Choir{
-		trigger: make(chan struct{}),
-	}
+	c := new(Choir)
+	c.Reset()
+	return c
 }
 
 func (c *Choir) PrepareRun(run, gen int, tasks []Task) {

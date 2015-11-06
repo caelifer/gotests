@@ -35,7 +35,3 @@ func (c *Choir) Wait() {
 func (c *Choir) Reset() {
 	c.trigger = make(chan struct{})
 }
-
-type Task interface {
-	Job(run, generation int)
-}

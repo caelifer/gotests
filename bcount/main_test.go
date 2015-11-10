@@ -14,6 +14,9 @@ var tests = []struct {
 	{0x3, 2},
 	{0xF, 4},
 	{0xFF, 8},
+	{0xFF00, 8},
+	{0xFF0000, 8},
+	{0xFF000000, 8},
 }
 
 func TestFastestCount(t *testing.T) {

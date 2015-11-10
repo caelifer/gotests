@@ -2,12 +2,14 @@ package main
 
 // naiveCountBitsInUint8 counts set bits byte represented as uint8
 func naiveCountBitsInUint8(b byte) int {
-	n := uint8(0)
-	for i := uint8(0); i < 8; i++ {
-		n += 0x1 & (b >> i)
+	var n int
+
+	for b > 0 {
+		n += int(b & 0x1)
+		b >>= 1
 	}
 
-	return int(n)
+	return n
 }
 
 // naiveCountSetBitsInUint32 counts bits in provided uint32 by

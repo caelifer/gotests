@@ -22,7 +22,7 @@ func main() {
 		"",
 	}
 	for _, t := range tests {
-		fmt.Printf("%-10s - %+v\n\n", t, ParseComplexRangeExpr(t).eval())
+		fmt.Printf("%-10q - %+v\n\n", t, ParseComplexRangeExpr(t).eval())
 	}
 }
 
@@ -70,7 +70,7 @@ func ParseComplexRangeExpr(expr string) *ComplexRange {
 		if r := ParseRangeExpr(v); r != nil {
 			rgs = append(rgs, r)
 		} else {
-			log.Println("bad range", v, expr)
+			log.Printf("bad range %q %q\n", v, expr)
 		}
 	}
 

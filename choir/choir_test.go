@@ -1,8 +1,8 @@
 package choir
 
 import (
-	"testing"
 	"sync/atomic"
+	"testing"
 )
 
 func TestFunction(t *testing.T) {
@@ -26,16 +26,16 @@ func TestFunction(t *testing.T) {
 
 	c.Reset()
 	func() {
-		defer func(){
+		defer func() {
 			if r := recover(); r != nil {
 				t.Errorf("Excpected normal channel operation, got panic: %q", r)
 			}
 		}()
 
-		go func(){
+		go func() {
 			c.trigger <- struct{}{}
 		}()
-		if _, ok := <- c.trigger; !ok {
+		if _, ok := <-c.trigger; !ok {
 			t.Error("Excpected good receive from trigger")
 		}
 	}()

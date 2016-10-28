@@ -19,7 +19,6 @@ func (cb *cb) reset() {
 	cb.n = cb.p
 	close(cb.b)
 	cb.b = make(chan struct{})
-
 }
 
 func (cb *cb) Await() {

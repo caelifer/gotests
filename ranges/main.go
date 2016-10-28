@@ -22,7 +22,7 @@ func main() {
 		"",
 	}
 	for _, t := range tests {
-		fmt.Printf("%-10q - %+v\n\n", t, ParseComplexRangeExpr(t).eval())
+		fmt.Printf("%-10q - %+v\n\n", t, ParseComplexRangeExpr(t).Eval())
 	}
 }
 
@@ -30,13 +30,13 @@ type ComplexRange struct {
 	ranges []*Range
 }
 
-func (c *ComplexRange) eval() (res []int) {
+func (c *ComplexRange) Eval() (res []int) {
 	if c == nil {
 		return nil
 	}
 
 	for _, v := range c.ranges {
-		res = append(res, v.eval()...)
+		res = append(res, v.Eval()...)
 	}
 
 	sort.Ints(res)
@@ -84,7 +84,7 @@ type Range struct {
 	ranges []int
 }
 
-func (r Range) eval() []int {
+func (r Range) Eval() []int {
 	return r.ranges
 }
 

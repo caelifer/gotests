@@ -7,29 +7,29 @@ import (
 
 type cb struct {
 	sync.Mutex
-	p int
-	n int
-	b chan struct{}
+	total   int
+	pending int
+	barier  chan struct{}
 }
 
 func (cb *cb) reset() {
 	cb.Lock()
 	defer cb.Unlock()
 
-	cb.n = cb.p
-	close(cb.b)
-	cb.b = make(chan struct{})
+	cb.pending = cb.total
+	close(cb.barier)
+	cb.barier = make(chan struct{})
 }
 
 func (cb *cb) Await() {
 	cb.Lock()
-	cb.n--
-	n := cb.n
-	b := cb.b
+	cb.pending--
+	pending := cb.pending
+	barier := cb.barier
 	cb.Unlock()
 
-	if n > 0 {
-		<-b
+	if pending > 0 {
+		<-barier
 	} else {
 		fmt.Println("All parties has arrived to the barrier, lets play...")
 		cb.reset()
@@ -38,9 +38,9 @@ func (cb *cb) Await() {
 
 func New(parties int) *cb {
 	cb := &cb{
-		p: parties,
-		n: parties,
-		b: make(chan struct{}),
+		total:   parties,
+		pending: parties,
+		barier:  make(chan struct{}),
 	}
 	return cb
 }

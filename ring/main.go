@@ -24,15 +24,13 @@ func ringer(nodes, nmsgs int) int {
 func createRing(nodes int, res chan int) chan int {
 	in := make(chan int)
 	out := in
-
 	i := 1
-	for ; i < nodes; i++ {
+	for i < nodes {
 		out = makeLink(i, out, res)
+		i++
 	}
-
-	fmt.Println("Creating final thread #:", i)
+	// fmt.Println("Creating final thread #:", i)
 	go link(i, out, in, res)
-
 	return in
 }
 
@@ -43,7 +41,6 @@ func link(id int, in <-chan int, out chan<- int, res chan int) {
 			res <- id
 			return
 		}
-
 		out <- i - 1
 	}
 }
@@ -56,13 +53,11 @@ func makeLink(id int, in <-chan int, res chan int) chan int {
 
 func main() {
 	n := 1000
-
 	if len(os.Args) > 1 {
 		n, _ = strconv.Atoi(os.Args[1])
 	}
-
+	// Run single-threaded
 	runtime.GOMAXPROCS(1)
-
 	// Start timer
 	t0 := time.Now()
 	r := ringer(503, n)

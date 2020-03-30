@@ -91,29 +91,32 @@ func (r Range) Eval() []int {
 func ParseRangeExpr(expr string) *Range {
 	var vals []int
 	parts := strings.Split(expr, "-")
+	nparts := len(parts)
 
-	switch l := len(parts); l {
-	case 1:
-		if ival1, err := strconv.Atoi(parts[0]); err == nil {
-			// Deal with one number range
-			vals = append(vals, ival1)
-		} else {
-			log.Printf("bad number %q in sub-range %q - %v", parts[0], expr, err)
-		}
-	case 2:
-		if ival1, err := strconv.Atoi(parts[0]); err == nil {
-			if ival2, err := strconv.Atoi(parts[1]); err == nil {
-				for i := ival1; i <= ival2; i++ {
-					vals = append(vals, i)
-				}
-			} else {
-				log.Printf("bad number[2] %q in sub-range %q - %v", parts[1], expr, err)
+	if nparts == 0 {
+		return nil
+	}
+
+	var (
+		ival1 int
+		err   error
+	)
+
+	if ival1, err = strconv.Atoi(parts[0]); err == nil {
+		// Deal with one number range
+		vals = append(vals, ival1)
+	} else {
+		log.Printf("bad number %q in sub-range %q - %v", parts[0], expr, err)
+	}
+
+	if nparts == 2 {
+		if ival2, err := strconv.Atoi(parts[1]); err == nil {
+			for i := ival1; i <= ival2; i++ {
+				vals = append(vals, i)
 			}
 		} else {
-			log.Printf("bad number[1] %q in sub-range %q - %v", parts[0], expr, err)
+			log.Printf("bad number[2] %q in sub-range %q - %v", parts[1], expr, err)
 		}
-	default:
-		return nil
 	}
 
 	return &Range{vals}

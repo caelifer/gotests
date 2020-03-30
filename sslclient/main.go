@@ -47,7 +47,7 @@ func main() {
 
 	// busy message
 	go prompt("Sending request... ", quit)
-	_, err = conn.Write([]byte("GET / HTTP/1.0\r\nHost: " + *host + "\r\n\r\n"))
+	_, err = conn.Write([]byte("GET / HTTP/1.1\r\nHost: " + *host + "\r\n\r\n"))
 	quit <- true
 	if err != nil {
 		log.Fatal(err)

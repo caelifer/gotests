@@ -4,21 +4,26 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/caelifer/gotests/cyclicbarrier"
+	cb "github.com/caelifer/gotests/cyclicbarrier"
+)
+
+const (
+	nPlayers  = 5
+	nBarriers = 2
 )
 
 func main() {
 	var wg sync.WaitGroup
-	cb := cyclicbarrier.New(5)
+	br := cb.New(nPlayers)
 
-	for i := 0; i < 5; i++ {
-		wg.Add(1)
+	wg.Add(nPlayers)
+	for i := 0; i < nPlayers; i++ {
 		go func(id int) {
 			defer wg.Done()
 			name := fmt.Sprintf("task #%d", id+1)
-			for b := 0; b < 2; b++ {
+			for b := 0; b < nBarriers; b++ {
 				fmt.Printf("%s is waiting at the barrier #%d.\n", name, b+1)
-				cb.Await()
+				br.Await()
 				fmt.Printf("%s has crossed the barrier #%d.\n", name, b+1)
 			}
 		}(i)

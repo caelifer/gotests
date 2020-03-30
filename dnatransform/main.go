@@ -22,10 +22,9 @@ var GlobalScheduler scheduler.Scheduler
 func main() {
 	// Make sure none of the subroutines have access to the command line variables
 	var (
-		cpuprofile     = flag.String("cpuprofile", "", "write cpu profile to file")
-		memprofile     = flag.String("memprofile", "", "write memory profile to file")
-		workerCount    = flag.Int("jobs", runtime.NumCPU()*2, "Number of parallel workers")
-		workQueueDepth = flag.Int("n", 64, "Number of queued jobs per worker")
+		cpuprofile  = flag.String("cpuprofile", "", "write cpu profile to file")
+		memprofile  = flag.String("memprofile", "", "write memory profile to file")
+		workerCount = flag.Int("jobs", runtime.NumCPU()*2, "Number of parallel workers")
 	)
 
 	// Parse commandline parameters
@@ -57,7 +56,7 @@ func main() {
 	}
 
 	// Pre-init GlobalScheduler so the workers can all be started before we proceed
-	GlobalScheduler = scheduler.New(*workerCount, *workQueueDepth)
+	GlobalScheduler = scheduler.New(*workerCount)
 
 	// Setup input
 	if len(flag.Args()) == 0 {
@@ -126,18 +125,17 @@ func NewLabelFilteredReader(r io.Reader) io.Reader {
 						log.Fatal("There should be no output on EOF")
 					}
 					return
-				} else {
-					log.Fatal(err)
 				}
+				log.Fatal(err)
 			}
 
 			if line[0] == '>' {
 				// Print label and skip
 				fmt.Print(string(line))
-			} else {
-				line = append(line, '\n')
-				fr.in <- line
+				continue
 			}
+			line = append(line, '\n')
+			fr.in <- line
 		}
 	}()
 

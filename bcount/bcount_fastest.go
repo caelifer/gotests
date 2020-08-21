@@ -1,6 +1,6 @@
 package main
 
-var bits = [256]int{
+var bitSum = [256]int{
 	0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
 	1, 2, 2, 3, 2, 3, 3, 4, 2, 3, 3, 4, 3, 4, 4, 5,
@@ -19,8 +19,8 @@ var bits = [256]int{
 	4, 5, 5, 6, 5, 6, 6, 7, 5, 6, 6, 7, 6, 7, 7, 8,
 }
 
-// fastestCountSetBitsInUint32 counts bits in provided uint32 by
+// fastestCountSetBitsInUint32 counts bitSum in provided uint32 by
 // summing bit counts of 4 bytes that comprises uint32
 func fastestCountSetBitsInUint32(ui uint32) int {
-	return bits[byte(ui>>24)] + bits[byte(ui>>16)] + bits[byte(ui>>8)] + bits[byte(ui)]
+	return bitSum[byte(ui>>24)] + bitSum[byte(ui>>16)] + bitSum[byte(ui>>8)] + bitSum[byte(ui)]
 }

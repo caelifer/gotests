@@ -19,6 +19,19 @@ var tests = []struct {
 	{0xFF000000, 8},
 }
 
+func TestAlgos(t *testing.T) {
+	for i := uint32(0xFFFFFFFF); i > 0; i >>= 1 {
+		naive := naiveCountSetBitsInUint32(i)
+		fast := fastCountSetBitsInUint32(i)
+		fastest := fastestCountSetBitsInUint32(i)
+
+		if naive != fast || fast != fastest || fastest != naive {
+			t.Errorf("Expected naive (%d) to be equal to fast (%d) and to fastest (%d)",
+				naive, fast, fastest)
+		}
+	}
+}
+
 func TestFastestCount(t *testing.T) {
 	for _, tst := range tests {
 		got := fastestCountSetBitsInUint32(tst.test)

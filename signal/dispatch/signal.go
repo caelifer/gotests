@@ -27,7 +27,7 @@ type SignalHandler func(os.Signal)
 
 // HandleSignal installs custom handler for a particular os.Signal provided by signal.
 func HandleSignal(sig os.Signal, handler SignalHandler) {
-	// Uneregister handler if it exists
+	// Unregister handler if it exists
 	StopHandleSignal(sig)
 
 	log.Printf("registering new [%s] handler", sig)

@@ -19,22 +19,20 @@ func main() {
 	for i := 0; i < 3; i++ {
 		gen := i + 1
 		c.PrepareRun(i, gen, tasks)
+		fmt.Println("--------------")
 		fmt.Printf("Generation[%d]:\n", gen)
+		fmt.Println("--------------")
 		c.Start()
 		c.Wait()
 		c.Reset()
 
 		// Remove a task
-		tasks = tasks[:len(tasks) - 1]
-
-		if i < 2 {
-			fmt.Println("--------")
-		}
+		tasks = tasks[:len(tasks)-1]
 	}
 }
 
-type task struct{
-	id int
+type task struct {
+	id   int
 	name string
 }
 

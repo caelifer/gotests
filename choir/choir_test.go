@@ -28,7 +28,7 @@ func TestFunction(t *testing.T) {
 	func() {
 		defer func() {
 			if r := recover(); r != nil {
-				t.Errorf("Excpected normal channel operation, got panic: %q", r)
+				t.Errorf("Expected normal channel operation, got panic: %q", r)
 			}
 		}()
 
@@ -36,21 +36,27 @@ func TestFunction(t *testing.T) {
 			c.trigger <- struct{}{}
 		}()
 		if _, ok := <-c.trigger; !ok {
-			t.Error("Excpected good receive from trigger")
+			t.Error("Expected good receive from trigger")
 		}
 	}()
 }
 
+var dummy *Choir
+
 func BenchmarkNew(b *testing.B) {
+	var c *Choir
 	for i := 0; i < b.N; i++ {
-		_ = new(Choir)
+		c = new(Choir)
 	}
+	dummy = c
 }
 
 func BenchmarkRaw(b *testing.B) {
+	var c *Choir
 	for i := 0; i < b.N; i++ {
-		_ = &Choir{}
+		c = &Choir{}
 	}
+	dummy = c
 }
 
 func setupTasks() []Task {

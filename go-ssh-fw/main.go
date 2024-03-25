@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -17,7 +16,7 @@ func privateKeyPath() string {
 
 // Get private key for ssh authentication
 func parsePrivateKey(keyPath string) (ssh.Signer, error) {
-	buff, _ := ioutil.ReadFile(keyPath)
+	buff, _ := os.ReadFile(keyPath)
 	return ssh.ParsePrivateKey(buff)
 }
 
@@ -88,6 +87,7 @@ func main() {
 	}
 	defer conn.Close()
 	log.Printf("connected to ssh host: %v", sshAddr)
+	os.Exit(0)
 
 	// Establish connection with remote server
 	remote, err := conn.Dial("tcp", remoteAddr)

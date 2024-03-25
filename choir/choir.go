@@ -3,8 +3,8 @@ package choir
 import "sync"
 
 type Choir struct {
-	wg      sync.WaitGroup
 	trigger chan struct{}
+	wg      sync.WaitGroup
 }
 
 func New() *Choir {

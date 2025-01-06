@@ -3,8 +3,6 @@ package main
 import (
 	"fmt"
 	"log"
-	"math/rand"
-	"time"
 
 	"github.com/caelifer/gotests/statemachine/fsm"
 	"github.com/caelifer/gotests/statemachine/state"
@@ -85,7 +83,7 @@ func (os OrderState) String() string {
 	return "invalid"
 }
 
-// Implement event.Event interface
+// OrderMessage implements event.Event interface
 type OrderMessage struct {
 	id          int
 	name        string
@@ -115,8 +113,6 @@ type stateFn func(OrderMessage) stateFn
 ///////////////// Main program entry ////////////////
 
 func main() {
-	rand.Seed(time.Now().Unix())
-
 	id := 1
 
 	// Order FSM
@@ -148,6 +144,8 @@ LOOP:
 				om = NewOrderMessage(id, "OrderFill", ns)
 			case Init:
 				om = NewOrderMessage(id, "BadMessage", ns)
+			default:
+				panic("unhandled default case")
 			}
 		case PartiallyFilled:
 			choices := []OrderState{PartiallyFilled, PartiallyFilled, PartiallyFilled, PartiallyFilled, Filled, Init, Canceled, Rejected}

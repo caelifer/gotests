@@ -102,7 +102,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer local.Close()
-	log.Printf("create local socket on: %v", localAddr)
+	log.Printf("created local socket on: %v", localAddr)
 
 	// Handle incoming connections
 	for {
@@ -114,3 +114,5 @@ func main() {
 		handleClient(client, remote)
 	}
 }
+
+// vim: :ts=4:sw=4:noexpandtab:ai

@@ -2,7 +2,6 @@ package lex
 
 import (
 	"fmt"
-	_ "log"
 	"unicode"
 	"unicode/utf8"
 )
@@ -108,6 +107,7 @@ func lexWord(l *Lexer) stateFn {
 	// log.Println("Entering lexWord")
 	// We already know that the first character is good
 	sym := l.next()
+	_ = sym // quelle linter warning
 	l.emit(Character)
 
 	for {
@@ -119,7 +119,7 @@ func lexWord(l *Lexer) stateFn {
 			return lexEOF
 		}
 
-		if !(unicode.IsDigit(sym) || unicode.IsLetter(sym) || sym == '-' || sym == '—' || sym == '_') {
+		if !unicode.IsDigit(sym) && !unicode.IsLetter(sym) && sym != '-' && sym != '—' && sym != '_' {
 			l.putback()
 			break
 		}
@@ -177,3 +177,5 @@ func (l *Lexer) peek() rune {
 	l.putback()
 	return r
 }
+
+// vim: :ts=4:sw=4:noexpandtab:ai

@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/caelifer/gotests/wc/lex"
@@ -12,7 +12,7 @@ func main() {
 	var lines, words, runes, chars int
 	// str := ""
 
-	content, _ := ioutil.ReadAll(os.Stdin)
+	content, _ := io.ReadAll(os.Stdin)
 
 	in := lex.Lex(string(content))
 
@@ -39,3 +39,5 @@ LOOP:
 	// panic("Testing stack")
 	// fmt.Println(str)
 }
+
+// vim: :ts=4:sw=4:noexpandtab:ai

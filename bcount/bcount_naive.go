@@ -14,9 +14,9 @@ func naiveCountBitsInUint8(b byte) int {
 
 // naiveCountSetBitsInUint32 counts bits in provided uint32 by
 // summing bit counts of 4 bytes that comprises uint32
-func naiveCountSetBitsInUint32(ui uint32) int {
-	return naiveCountBitsInUint8(byte(ui>>24)) +
-		naiveCountBitsInUint8(byte(ui>>16)) +
-		naiveCountBitsInUint8(byte(ui>>8)) +
-		naiveCountBitsInUint8(byte(ui))
+func naiveCountSetBitsInUint32(n uint32) int {
+	return naiveCountBitsInUint8(byte(n>>24)) +
+		naiveCountBitsInUint8(byte(n>>16)) +
+		naiveCountBitsInUint8(byte(n>>8)) +
+		naiveCountBitsInUint8(byte(n))
 }

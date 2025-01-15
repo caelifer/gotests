@@ -21,6 +21,7 @@ var bitSum = [256]int{
 
 // fastestCountSetBitsInUint32 counts bitSum in provided uint32 by
 // summing bit counts of 4 bytes that comprises uint32
-func fastestCountSetBitsInUint32(ui uint32) int {
-	return bitSum[byte(ui>>24)] + bitSum[byte(ui>>16)] + bitSum[byte(ui>>8)] + bitSum[byte(ui)]
+func fastestCountSetBitsInUint32(n uint32) int {
+	// return bitSum[byte(n>>24)] + bitSum[byte(n>>16)] + bitSum[byte(n>>8)] + bitSum[byte(n)]
+	return bitSum[n>>24] + bitSum[n>>16&0xFF] + bitSum[n>>8&0xFF] + bitSum[n&0xFF]
 }

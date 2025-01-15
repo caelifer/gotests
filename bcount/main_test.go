@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math/bits"
 	"testing"
 )
 
@@ -60,19 +61,33 @@ func TestNaiveCount(t *testing.T) {
 }
 
 func BenchmarkFastestCount(b *testing.B) {
+	var res int
 	for i := 0; i < b.N; i++ {
-		_ = fastestCountSetBitsInUint32(uint32(i))
+		res = fastestCountSetBitsInUint32(uint32(i))
 	}
+	_ = res
 }
 
 func BenchmarkFastCount(b *testing.B) {
+	var res int
 	for i := 0; i < b.N; i++ {
-		_ = fastCountSetBitsInUint32(uint32(i))
+		res = fastCountSetBitsInUint32(uint32(i))
 	}
+	_ = res
 }
 
 func BenchmarkNaiveCount(b *testing.B) {
+	var res int
 	for i := 0; i < b.N; i++ {
-		_ = naiveCountSetBitsInUint32(uint32(i))
+		res = naiveCountSetBitsInUint32(uint32(i))
 	}
+	_ = res
+}
+
+func BenchmarkStdLibOnesCount32(b *testing.B) {
+	var res int
+	for i := 0; i < b.N; i++ {
+		res = bits.OnesCount32(uint32(i))
+	}
+	_ = res
 }

@@ -50,9 +50,9 @@ func fastCountBitsInUint8(b byte) int {
 
 // fastCountSetBitsInUint32 counts bits in provided uint32 by
 // summing bit counts of 4 bytes that comprises uint32
-func fastCountSetBitsInUint32(ui uint32) int {
-	return fastCountBitsInUint8(byte(ui>>24)) +
-		fastCountBitsInUint8(byte(ui>>16)) +
-		fastCountBitsInUint8(byte(ui>>8)) +
-		fastCountBitsInUint8(byte(ui))
+func fastCountSetBitsInUint32(n uint32) int {
+	return fastCountBitsInUint8(byte(n>>24)) +
+		fastCountBitsInUint8(byte(n>>16)) +
+		fastCountBitsInUint8(byte(n>>8)) +
+		fastCountBitsInUint8(byte(n))
 }

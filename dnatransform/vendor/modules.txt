@@ -1,0 +1,5 @@
+# github.com/caelifer/scheduler v0.0.0-20200417010307-fcce5f5da957
+## explicit; go 1.12
+github.com/caelifer/scheduler
+github.com/caelifer/scheduler/job
+github.com/caelifer/scheduler/worker

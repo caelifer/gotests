@@ -10,12 +10,13 @@ func Test(t *testing.T) {
 		"ab":              "ba",
 		"Hello, gopher!":  "!rehpog ,olleH",
 		"Здравствуй, ГО!": "!ОГ ,йувтсвардЗ",
+		"😀🤡💩":             "💩🤡😀",
 	}
 
 	for test, want := range ttable {
 		got := Reverse(test)
 		if got != want {
-			t.Errorf("For '%q' got '%q', expected '%q'!", test, got, want)
+			t.Errorf("For %q got %q, expected %q!", test, got, want)
 		}
 	}
 }
